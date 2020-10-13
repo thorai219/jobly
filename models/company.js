@@ -53,12 +53,40 @@ class Company {
         `INSERT INTO companies (handle, name, num_employees, logo_url)
         VALUES ($1,$2,$3,$4)
         RETURNING handle, name, num_employees, logo_url`
-        ,[handle, name, num_employees, logo_url]
+        ,[data.handle, data.name, data.num_employees, data.logo_url]
       )
       return result.rows;
     }
-    throw { message: `${name} already exists!` }
+    throw new ExpressError(`${data.handle} already exists!`, 400)
   }
 
+  static async update(handle, data) {
+    let { query, values } = sqlForPartialUpdate(
+      "companies",
+      data,
+      "handle",
+      handle
+    );
+
+    const result = await db.query(query, values);
+    const company = result.rows[0];
+
+    if (!company) {
+      throw new ExpressError(`There exists no company '${handle}`, 404);
+    }
+
+    return company;
+  }
+
+  static async delete(handle) {
+    const result = await db.query(`
+      DELETE FROM companies WHERE id=$1 RETURNING handle
+    `, [handle]
+    )
+
+    if (result.rows.length === 0) {
+      throw new ExpressError(`There exists no company '${handle}`, 404);
+    }
+  }
 }
 
