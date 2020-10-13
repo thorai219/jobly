@@ -5,7 +5,7 @@ const { validate } = require('jsonschema');
 const newJob = require('../schema/newJobSchema.json');
 const updateJob = require('../schema/updateJobSchema.json');
 
-const router = express.Router({ mergeParams: true });
+const router = new express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
