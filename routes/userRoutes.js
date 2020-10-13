@@ -4,6 +4,7 @@ const User = require('../models/User');
 const { validate } = require('jsonschema');
 const newUser = require('../schema/newUserSchema.json');
 const updateUser = require('../schema/updateUserSchema.json')
+const createToken = require('../helpers/createToken');
 
 const router = new express.Router();
 
@@ -34,7 +35,8 @@ router.post("/", async (req, res, next) => {
     }
 
     const result = await User.signup(req.body);
-    return res.json({ result })
+    const token = createToken(result)
+    return res.status(201).json({ token });
   } catch(e) {
     return next(e)
   }
