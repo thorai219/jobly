@@ -3,8 +3,9 @@ const ExpressError = require("../helpers/ExpressError");
 const sqlForPartialUpdate = require("../helpers/partialUpdate");
 
 class Company {
-  // find all companies and can be filtered by number of employees
+
   static async getAll(q) {
+      // find all companies and can be filtered by number of employees
     let query = `SELECT handle, name FROM companies WHERE`;
     let where = [];
     let values = [];
@@ -33,8 +34,9 @@ class Company {
     return result.rows;
   }
 
-  // find one company with handle and it's available jobs
+
   static async getOne(handle) {
+      // find one company with handle and it's available jobs
     const companyResult = await db.query(
       `SELECT handle, name FROM companies
       WHERE name ILIKE $1`, [handle]
@@ -51,8 +53,9 @@ class Company {
     return company; 
   }
   
-  // add a company to database
+
   static async addCompany(data) {
+      // add a company to database
     const existing = await db.query(
       `SELECT handle FROM companies WHERE handle = $1`,
       [data.handle]
@@ -69,8 +72,9 @@ class Company {
     throw new ExpressError(`${data.handle} already exists!`, 400)
   }
 
-  // update a company allowing for partial updates
+
   static async update(handle, data) {
+      // update a company allowing for partial updatess
     let { query, values } = sqlForPartialUpdate(
       "companies",
       data,
@@ -88,8 +92,9 @@ class Company {
     return company;
   }
 
-  //delete a company
+
   static async delete(handle) {
+      //delete a company
     const result = await db.query(`
       DELETE FROM companies WHERE id=$1 RETURNING handle
     `, [handle]

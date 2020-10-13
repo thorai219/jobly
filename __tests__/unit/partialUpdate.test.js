@@ -13,6 +13,6 @@ describe("partialUpdate()", () => {
         expect(query).toEqual(
           'UPDATE companies SET name=$1 WHERE handle=$2 RETURNING *'
         )
-        exprect(values).toEqual(['Test', 'testcompany']);
+        expect(values).toEqual(['Test', 'testcompany']);
   });
 });

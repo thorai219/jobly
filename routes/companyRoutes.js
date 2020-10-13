@@ -1,13 +1,14 @@
 const express = require("express")
 const ExpressError = require('../helpers/ExpressError');
 const Company = require("../models/company");
-const newCompany = require("../schema/newCompanySchema.json")
-const updateCompany = require("../schema/updateCompanySchema.json")
-const { validate } = require("jsonschema")  
+const newCompany = require("../schema/newCompanySchema.json");
+const { admin, authed } = require('../middleware/auth');
+const updateCompany = require("../schema/updateCompanySchema.json");
+const { validate } = require("jsonschema");
 
 const router = new express.Router();
 
-router.get("/", async (req, res, next) => {
+router.get("/", authed, async (req, res, next) => {
   try {
     const result = await Company.getAll(req.query)
     return res.json({ result });
@@ -16,7 +17,7 @@ router.get("/", async (req, res, next) => {
   }
 })
 
-router.get("/:handle", async (req, res, next) => {
+router.get("/:handle", authed, async (req, res, next) => {
   try {
     const result = await Company.getOne(req.params.handle)
     return res.json({ result })
@@ -25,7 +26,7 @@ router.get("/:handle", async (req, res, next) => {
   }
 })
 
-router.post("/", async (req, res, next) => {
+router.post("/", admin, async (req, res, next) => {
   try {
     const valid = validate(req.body, newCompany)
     if (!valid.valid) {
@@ -39,7 +40,7 @@ router.post("/", async (req, res, next) => {
   }
 })
 
-router.patch("/:handle", async (req, res, next) => {
+router.patch("/:handle", admin, async (req, res, next) => {
   try {
     const valid = validation(req.body, updateCompany);
 
@@ -53,7 +54,7 @@ router.patch("/:handle", async (req, res, next) => {
   }
 })
 
-router.delete("/:handle", async (req, res, next) => {
+router.delete("/:handle", admin, async (req, res, next) => {
   try {
     await Company.delete(req.params.handle)
     return res.json({ message: "Deleted!" })

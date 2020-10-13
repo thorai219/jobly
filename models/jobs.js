@@ -5,6 +5,7 @@ const sqlForPartialUpdate = require("../helpers/partialUpdate");
 class Job {
   
   static async getAll(q) {
+    // find all jobs, can be filtered by salary, equity or both
     let query = `SELECT id, title, company_handle FROM jobs`;
     let where = [];
     let value = [];
@@ -31,6 +32,7 @@ class Job {
   }
 
   static async getOne(id) {
+    // get a job by its id
     const result = await db.query(`
       SELECT id, title, salary, equity, company_handle FROM jobs WHERE id=$1
     `, [id])
@@ -43,6 +45,7 @@ class Job {
   }
 
   static async addJob(data) {
+    // post  a job
     const result = await db.query(`
       INSERT INTO jobs (title, salary, equity, company_handle)
       VALUES ($1, $2, $3, $4) RETURNING id, title, salary, equity, company_handle
@@ -52,6 +55,7 @@ class Job {
   }
 
   static async updateJob(id, data) {
+    // update a job posting
     let { query, values } = sqlForPartialUpdate("jobs", data, "id", id);
 
     const result = await db.query(query, values);
@@ -64,6 +68,7 @@ class Job {
   }
 
   static async deleteJob(id) {
+    // delete a job post
     const result = await db.query(`
       DELETE FROM jobs WHERE id=$1 RETURNING id
     `, [id])
