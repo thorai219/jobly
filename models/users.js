@@ -3,7 +3,10 @@ const bcrypt = require('bcrypt');
 const ExpressError = require("../helpers/expressError");
 const sqlForPartialUpdate = require("../helpers/partialUpdate");
 
+const SALT_ROUNDS = 10;
+
 class User {
+
   static async authenticate(data) {
     // find the user with provided username
     const result = await db.query(`
@@ -11,11 +14,11 @@ class User {
       FROM users WHERE username = $1
     `, [data.username])
 
-    if (result.rows) {
-      // if passrod is valid return the user
-      const valid = await bcrypt.compare(data.password, result.rows.password)
+    if (result.rows[0]) {
+      // if password is valid return the user
+      const valid = await bcrypt.compare(data.password, result.rows[0].password)
       if (valid) {
-        return result.rows;
+        return result.rows[0];
       }
     }
     // else throw error
@@ -23,21 +26,34 @@ class User {
   }
 
   static async signup(data) {
-    // check for existing user with same username
-    const checkExisting = await db.query(`
-      SELECT username FROM users WHERE username = $1
-    `, [data.username])
-    // if username exists throw error
-    if (checkExisting) {
-      throw new ExpressError(`${data.username} already exists, try different username.`, 400)
+    const duplicateCheck = await db.query(`
+      SELECT username FROM users WHERE username = $1`, [data.username]
+    );
+
+    if (duplicateCheck.rows[0]) {
+      throw new ExpressError(
+        `There already exists a user with username '${data.username}`,
+        400
+      );
     }
-    // hash password and sign them up
-    const hashedPassword = await bcrypt.hash(data.password, BCRYPT_WORK_FACTOR);
-    const result = await db.query(`
-      INSERT INTO users (username, password, first_name, last_name, email, photo_url)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING username, password, first_name, last_name, email, photo_url
-    `, [data.username, hashedPassword, data.first_name, data.last_name, data.email, data.photo_url])
+
+    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
+
+    const result = await db.query(
+      `INSERT INTO users 
+          (username, password, first_name, last_name, email, photo_url) 
+        VALUES ($1, $2, $3, $4, $5, $6) 
+        RETURNING username, password, first_name, last_name, email, photo_url`,
+      [
+        data.username,
+        hashedPassword,
+        data.first_name,
+        data.last_name,
+        data.email,
+        data.photo_url
+      ]
+    );
+
     return result.rows[0];
   }
 
@@ -62,7 +78,7 @@ class User {
     // update existing user profile
     // check if password matches
     if (data.password) {
-      data.password = await bcrypt.hash(data.password, BCRYPT_WORK_FACTOR);
+      data.password = await bcrypt.hash(data.password, SALT_ROUNDS);
     }
     // user helper function for partially updating a user porfile
     let { query, values } = partialUpdate("users", data, "username", username);

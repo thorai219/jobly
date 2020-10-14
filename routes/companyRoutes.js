@@ -26,10 +26,10 @@ router.get("/:handle", authed, async (req, res, next) => {
   }
 })
 
-router.post("/", admin, async (req, res, next) => {
+router.post("/", async function(req, res, next) {
   try {
-    const valid = validate(req.body, newCompany)
-    if (!valid.valid) {
+    const is_valid = validate(req.body, newCompany)
+    if (!is_valid.valid) {
       throw new ExpressError(valid.errors.map(e => e.stack), 400);
     }
 

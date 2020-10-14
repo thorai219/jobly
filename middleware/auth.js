@@ -5,11 +5,15 @@ const ExpressError = require("../helpers/expressError");
 function authed (req, res, next) {
   try {
     // grab token from either body or query str
-    const tokenStr = req.body._token || req.query._token;
+    const tokenStr = req.body.token || req.query.token;
     // return the verified token, compare with original token signature
-    let token = jwt.verify(tokenStr, SECRET_KEY);
+    let token = jwt.verify(tokenStr, SECRET_KEY, function(err, decoded) {
+      if(err) {
+        console.log(err)
+      }
+    });
     // append username to res.locals which is global to use in view funcitions
-    res.locals.username = token.username;
+    res.locals.username = tokenStr.username;
     return next();
   } catch(e) {
     return next(e)
@@ -19,9 +23,13 @@ function authed (req, res, next) {
 function admin (req, res, next) {
   try {
     // grab the token
-    const tokenStr = req.body._token;
+    const tokenStr = req.body.token;
 
-    let token = jwt.verify(tokenStr, SECRET_KEY);
+    let token = jwt.verify(tokenStr, SECRET_KEY, function(err, decoded) {
+      if(err) {
+        console.log(err)
+      }
+    });
     res.locals.username = token.username;
     // verify if is_admin
     if (token.is_admin) {
@@ -36,7 +44,7 @@ function admin (req, res, next) {
 
 function correctUser (req, res, next) {
   try {
-    const tokenStr = req.body._token;
+    const tokenStr = req.body.token;
 
     let token = jwt.verify(tokenStr, SECRET_KEY);
     res.locals.username = token.username;

@@ -6,7 +6,7 @@ class Company {
 
   static async getAll(q) {
       // find all companies and can be filtered by number of employees
-    let query = `SELECT handle, name FROM companies WHERE`;
+    let query = `SELECT handle, name FROM companies`;
     let where = [];
     let values = [];
 
@@ -20,13 +20,17 @@ class Company {
     }
 
     if (q.max_employees) {
-      values.push(+data.max_employees);
+      values.push(+q.max_employees);
       where.push(`num_employees >= $${values.length}`)
     }
 
     if (q.search) {
       values.push(`%${q.search}%`)
       where.push(`name ILIKE $${values.length}`)
+    }
+
+    if (where.length > 0) {
+      query += " WHERE ";
     }
 
     let searchQuery = query + where.join(" AND ") + " ORDER BY name";
@@ -55,21 +59,25 @@ class Company {
   
 
   static async addCompany(data) {
-      // add a company to database
-    const existing = await db.query(
-      `SELECT handle FROM companies WHERE handle = $1`,
-      [data.handle]
-    )
-    if (existing.rows.length === 0) {
-      const result = await db.query(
-        `INSERT INTO companies (handle, name, num_employees, logo_url)
-        VALUES ($1,$2,$3,$4)
-        RETURNING handle, name, num_employees, logo_url`
-        ,[data.handle, data.name, data.num_employees, data.logo_url]
-      )
-      return result.rows;
+    const duplicateCheck = await db.query(`
+      SELECT handle 
+      FROM companies 
+      WHERE handle = $1`,[data.handle]);
+
+    if (duplicateCheck.rows[0]) {
+      throw new ExpressError(
+        `There already exists a company with handle '${data.handle}`,
+        400
+      );
     }
-    throw new ExpressError(`${data.handle} already exists!`, 400)
+
+    const result = await db.query(`
+      INSERT INTO companies (handle, name, num_employees, description, logo_url)
+      VALUES ($1, $2, $3, $4, $5) 
+      RETURNING handle, name, num_employees, description, logo_url
+      `, [data.handle, data.name, data.num_employees, data.description, data.logo_url]);
+
+    return result.rows[0];
   }
 
 

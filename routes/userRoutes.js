@@ -19,7 +19,7 @@ router.get("/", authed, async (req, res, next) => {
   }
 })
 
-router.get("/username", authed, async (req, res, next) => {
+router.get("/:username", authed, async (req, res, next) => {
   // get user by username
   try {
     const result = await User.getOne(req.params.username);
@@ -29,7 +29,7 @@ router.get("/username", authed, async (req, res, next) => {
   }
 })
 
-router.post("/", async (req, res, next) => {
+router.post("/", async function(req, res, next) {
   // sign up user and create token 
   try {
     const valid = validate(req.data, newUser);
@@ -46,7 +46,7 @@ router.post("/", async (req, res, next) => {
   }
 })
 
-router.patch("/username", correctUser, async (req, res, next) => {
+router.patch("/:username", correctUser, async (req, res, next) => {
   // update user profile
   try {
     const valid = validate(req.body, updateUser);
@@ -61,7 +61,7 @@ router.patch("/username", correctUser, async (req, res, next) => {
   }
 })
 
-router.delete("/username", correctUser, async (req, res, next) => {
+router.delete("/:username", correctUser, async (req, res, next) => {
   // delete a user
   try {
     const result = await User.deleteUser(req.params.username)
