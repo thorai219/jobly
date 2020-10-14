@@ -1,6 +1,6 @@
 const express = require('express');
-const ExpressError = require('../helpers/ExpressError');
-const Job = require('../models/Job');
+const ExpressError = require('../helpers/expressError');
+const Job = require('../models/jobs');
 const { validate } = require('jsonschema');
 const { admin, authed } = require('../middleware/auth');
 const newJob = require('../schema/newJobSchema.json');

@@ -1,10 +1,10 @@
 const db = require("../db");
-const bcrypt = require("bcrypt");
-const ExpressError = require("../helpers/ExpressError");
+const bcrypt = require('bcrypt');
+const ExpressError = require("../helpers/expressError");
 const sqlForPartialUpdate = require("../helpers/partialUpdate");
 
 class User {
-  static async athenticate(data) {
+  static async authenticate(data) {
     // find the user with provided username
     const result = await db.query(`
       SELECT username, password, first_name, last_name, email, photo_url, is_admin

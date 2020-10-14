@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { SECRET_KEY } = require("../config");
-const ExpressError = require("../helpers/ExpressError");
+const ExpressError = require("../helpers/expressError");
 
 function authed (req, res, next) {
   try {

@@ -1,11 +1,11 @@
 const express = require('express');
-const ExpressError = require('../helpers/ExpressError');
-const User = require('../models/User');
+const ExpressError = require('../helpers/expressError');
+const User = require('../models/users');
 const { validate } = require('jsonschema');
 const newUser = require('../schema/newUserSchema.json');
 const { correctUser, authed } = require('../middleware/auth');
 const updateUser = require('../schema/updateUserSchema.json')
-const createToken = require('../helpers/createToken');
+const createToken = require('../helpers/token');
 
 const router = new express.Router();
 

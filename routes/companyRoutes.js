@@ -1,5 +1,5 @@
 const express = require("express")
-const ExpressError = require('../helpers/ExpressError');
+const ExpressError = require('../helpers/expressError');
 const Company = require("../models/company");
 const newCompany = require("../schema/newCompanySchema.json");
 const { admin, authed } = require('../middleware/auth');

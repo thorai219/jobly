@@ -3,8 +3,6 @@
 const { Client } = require("pg");
 const { DB_URI } = require("./config");
 
-const { Client } = require('pg');
-
 const db = new Client({
   user: 'postgres',
   host: 'localhost',

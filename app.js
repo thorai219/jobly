@@ -4,9 +4,9 @@ const express = require("express");
 
 const ExpressError = require("./helpers/expressError");
 
-const usersRoutes = require('./routes/users');
-const companiesRoutes = require('./routes/companies');
-const jobsRoutes = require('./routes/jobs');
+const companiesRoutes = require('./routes/companyRoutes');
+const usersRoutes = require('./routes/userRoutes');
+const jobsRoutes = require('./routes/jobsRoute');
 const authRoutes = require('./routes/auth');
 
 const morgan = require("morgan");

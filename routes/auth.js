@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/users");
 const express = require("express");
 const router = new express.Router();
 const createToken = require("../helpers/token");
