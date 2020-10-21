@@ -2,6 +2,9 @@
     "$id": "http://example.com/example.json",
     "type": "object",
     "additionalProperties": false,
+    "required": [
+      "name"
+    ],
     "properties": {
       "name": {
         "$id": "/properties/name",
@@ -10,7 +13,7 @@
         "default": "",
         "minLength": 1,
         "maxLength": 55,
-        "examples": ["Terry"]
+        "examples": ["Rithm"]
       },
       "handle": {
         "$id": "/properties/handle",
@@ -19,7 +22,7 @@
         "default": "",
         "minLength": 1,
         "maxLength": 55,
-        "examples": ["Terry Inc"]
+        "examples": ["rithm"]
       },
       "logo": {
         "$id": "/properties/logo",
@@ -28,7 +31,7 @@
         "default": "",
         "format": "uri",
         "examples": [
-          "https://terry.jpg"
+          "https://ih1.redbubble.net/image.396326354.4958/flat,800x800,075,t.u1.jpg"
         ]
       },
       "_token": {
@@ -37,10 +40,8 @@
         "title": "The Token Schema ",
         "default": "",
         "examples": [
-          "foobar123"
+          "foo123"
         ]
       }
-    },
-    "required": ["name", "handle"]
+    }
   }
-  

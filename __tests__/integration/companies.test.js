@@ -1,59 +1,163 @@
-const request = require("supertest");
-const app = require("../../app");
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const db = require('../../db');
+// npm packages
+const request = require('supertest');
 
-let TEST_DATA = {};
+// app imports
+const app = require('../../app');
+
+const {
+  TEST_DATA,
+  afterEachHook,
+  beforeEachHook,
+  afterAllHook
+} = require('./config');
 
 beforeEach(async function() {
-  const hashedPassword = await bcrypt.hash('hello', 10);
-  await db.query(`
-    INSERT INTO users (username, password, first_name, last_name, email, is_admin)
-    VALUES ('Terry', $1, 'Terry', 'Lee', 'Terry@test.com', true)`
-    ,[hashedPassword]);
-
-  // login a user to get token
-  const response = await request(app)
-    .post('/login')
-    .send({
-      username: 'Terry',
-      password: 'hello'
-    });
-  TEST_DATA.userToken = response.body.token;
-  TEST_DATA.username = jwt.decode(TEST_DATA.userToken).username;
+  await beforeEachHook(TEST_DATA);
 });
 
-describe("/company post", function () {
-  test("create a company", async function () {
-    const result = await request(app)
-    .post("/company")
-    .send({
-      handle: "apple",
-      name: "Apple Inc",
-      _token: TEST_DATA.userToken
-    });
-    console.log(result.statusCode);
-    expect(result.statusCode).toEqual(201);
+describe('POST /companies', async function() {
+  test('Creates a new company', async function() {
+    const response = await request(app)
+      .post('/companies')
+      .send({
+        handle: 'whiskey',
+        name: 'Whiskey',
+        _token: TEST_DATA.userToken
+      });
+    expect(response.statusCode).toBe(201);
     expect(response.body.company).toHaveProperty('handle');
+  });
+
+  test('Prevents creating a company with duplicate handle', async function() {
+    const response = await request(app)
+      .post('/companies')
+      .send({
+        _token: TEST_DATA.userToken,
+        handle: 'rithm',
+        name: 'Test'
+      });
+    expect(response.statusCode).toBe(400);
+  });
+});
+
+describe('GET /companies', async function() {
+  test('Gets a list of 1 company', async function() {
+    const response = await request(app).get('/companies');
+    expect(response.body.companies).toHaveLength(1);
+    expect(response.body.companies[0]).toHaveProperty('handle');
+  });
+
+  test('Has working search', async function() {
+    await request(app)
+      .post('/companies')
+      .set('authorization', `${TEST_DATA.userToken}`)
+      .send({
+        _token: TEST_DATA.userToken,
+        handle: 'hooli',
+        name: 'Hooli'
+      });
+
+    await request(app)
+      .post('/companies')
+      .set('authorization', `${TEST_DATA.userToken}`)
+      .send({
+        _token: TEST_DATA.userToken,
+        handle: 'pp',
+        name: 'Pied Piper'
+      });
+
+    const response = await request(app)
+      .get('/companies?search=hooli')
+      .send({
+        _token: TEST_DATA.userToken
+      });
+    expect(response.body.companies).toHaveLength(1);
+    expect(response.body.companies[0]).toHaveProperty('handle');
+  });
+});
+
+describe('GET /companies/:handle', async function() {
+  test('Gets a single a company', async function() {
+    const response = await request(app)
+      .get(`/companies/${TEST_DATA.currentCompany.handle}`)
+      .send({
+        _token: TEST_DATA.userToken
+      });
+    expect(response.body.company).toHaveProperty('handle');
+    expect(response.body.company.handle).toBe('rithm');
+  });
+
+  test('Responds with a 404 if it cannot find the company in question', async function() {
+    const response = await request(app)
+      .get(`/companies/yaaasss`)
+      .send({
+        _token: TEST_DATA.userToken
+      });
+    expect(response.statusCode).toBe(404);
+  });
+});
+
+describe('PATCH /companies/:handle', async function() {
+  test("Updates a single a company's name", async function() {
+    const response = await request(app)
+      .patch(`/companies/${TEST_DATA.currentCompany.handle}`)
+      .send({
+        name: 'xkcd',
+        _token: TEST_DATA.userToken
+      });
+    expect(response.body.company).toHaveProperty('handle');
+    expect(response.body.company.name).toBe('xkcd');
+    expect(response.body.company.handle).not.toBe(null);
+  });
+
+  test('Prevents a bad company update', async function() {
+    const response = await request(app)
+      .patch(`/companies/${TEST_DATA.currentCompany.handle}`)
+      .send({
+        _token: TEST_DATA.userToken,
+        cactus: false
+      });
+    expect(response.statusCode).toBe(400);
+  });
+
+  test('Responds with a 404 if it cannot find the company in question', async function() {
+    // delete company first
+    await request(app).delete(`/companies/${TEST_DATA.currentCompany.handle}`);
+    const response = await request(app)
+      .patch(`/companies/taco`)
+      .send({
+        name: 'newTaco',
+        _token: TEST_DATA.userToken
+      });
+    expect(response.statusCode).toBe(404);
+  });
+});
+
+describe('DELETE /companies/:handle', async function() {
+  test('Deletes a single a company', async function() {
+    const response = await request(app)
+      .delete(`/companies/${TEST_DATA.currentCompany.handle}`)
+      .send({
+        _token: TEST_DATA.userToken
+      });
+    expect(response.body).toEqual({ message: 'Company deleted' });
+  });
+
+  test('Responds with a 404 if it cannot find the company in question', async function() {
+    // delete company first
+    const response = await request(app)
+      .delete(`/companies/notme`)
+      .send({
+        _token: TEST_DATA.userToken
+      });
+    expect(response.statusCode).toBe(404);
   });
 });
 
 afterEach(async function() {
-  try {
-    await db.query('DELETE FROM jobs');
-    await db.query('DELETE FROM users');
-    await db.query('DELETE FROM companies');
-  } catch (e) {
-    console.error(e);
-  }
+  await afterEachHook();
 });
 
 afterAll(async function() {
-  try {
-    await db.end();
-  } catch (e) {
-    console.error(e);
-  }
+  await afterAllHook();
 });
-

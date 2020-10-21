@@ -2,11 +2,11 @@
 
 const express = require("express");
 
-const ExpressError = require("./helpers/expressError");
+const ExpressError = require("./helpers/ExpressError");
 
-const companiesRoutes = require('./routes/companyRoutes');
-const usersRoutes = require('./routes/userRoutes');
-const jobsRoutes = require('./routes/jobsRoute');
+const companiesRoutes = require('./routes/companies');
+const usersRoutes = require('./routes/users');
+const jobsRoutes = require('./routes/jobs');
 const authRoutes = require('./routes/auth');
 
 const morgan = require("morgan");
