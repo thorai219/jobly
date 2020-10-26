@@ -2,7 +2,7 @@
 
 const express = require('express');
 const ExpressError = require('../helpers/ExpressError');
-const { authRequired, adminRequired } = require('../middleware/auth');
+const { authed, admin } = require('../middleware/auth');
 const Company = require('../models/Company');
 const { validate } = require('jsonschema');
 const { companyNewSchema, companyUpdateSchema } = require('../schemas');
@@ -11,7 +11,9 @@ const router = new express.Router();
 
 /** GET /  =>  {companies: [company, company]}  */
 
-router.get('/', authRequired, async function(req, res, next) {
+
+
+router.get('/', authed, async function(req, res, next) {
   try {
     const companies = await Company.findAll(req.query);
     return res.json({ companies });
@@ -22,7 +24,7 @@ router.get('/', authRequired, async function(req, res, next) {
 
 /** GET /[handle]  =>  {company: company} */
 
-router.get('/:handle', authRequired, async function(req, res, next) {
+router.get('/:handle', authed, async function(req, res, next) {
   try {
     const company = await Company.findOne(req.params.handle);
     return res.json({ company });
@@ -33,7 +35,7 @@ router.get('/:handle', authRequired, async function(req, res, next) {
 
 /** POST / {companyData} =>  {company: newCompany} */
 
-router.post('/', adminRequired, async function(req, res, next) {
+router.post('/', admin, async function(req, res, next) {
   try {
     const validation = validate(req.body, companyNewSchema);
 
@@ -42,7 +44,7 @@ router.post('/', adminRequired, async function(req, res, next) {
     }
 
     const company = await Company.create(req.body);
-    return res.status(201).json({ company }); // 201 CREATED
+    return res.status(201).json({ company });
   } catch (err) {
     return next(err);
   }
@@ -50,7 +52,7 @@ router.post('/', adminRequired, async function(req, res, next) {
 
 /** PATCH /[handle] {companyData} => {company: updatedCompany}  */
 
-router.patch('/:handle', adminRequired, async function(req, res, next) {
+router.patch('/:handle', admin, async function(req, res, next) {
   try {
     if ('handle' in req.body) {
       throw new ExpressError('You are not allowed to change the handle.', 400);
@@ -70,7 +72,7 @@ router.patch('/:handle', adminRequired, async function(req, res, next) {
 
 /** DELETE /[handle]  =>  {message: "Company deleted"}  */
 
-router.delete('/:handle', adminRequired, async function(req, res, next) {
+router.delete('/:handle', admin, async function(req, res, next) {
   try {
     await Company.remove(req.params.handle);
     return res.json({ message: 'Company deleted' });

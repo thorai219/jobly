@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const app = require("../../app");
 const db = require("../../db");
 
-var TEST = {}
+var TEST = {};
 
 beforeAll(async (done) => {
   try {
@@ -12,10 +12,6 @@ beforeAll(async (done) => {
       INSERT INTO users (username, password, email, first_name, last_name, is_admin)
       VALUES ('test', $1, 'test@test.com', 'test', 'tester', true)
     `, [pwd])
-    await db.query(`
-      INSERT INTO companies (handle, name)
-      VALUES ('aaa', 'AAA Company')
-    `)
     return await request(app)
       .post('/login')
       .send({
@@ -32,105 +28,104 @@ beforeAll(async (done) => {
   }
 })
 
-describe('post /companies', () => {
-  test('should create a company', async () => {
-    try {
+describe('post /users', () => {
+  test('able to register', async () => {
+    try{
       return await request(app)
-        .post('/companies')
+        .post('/users')
         .send({
-          handle: 'bbb',
-          name: 'BBB Company',
-          _token: TEST.token
+          username: 'hello',
+          password: 'hello123',
+          email: 'hello@test.com'
         })
         .then((res) => {
           expect(res.statusCode).toEqual(201)
         })
-    } catch (err) {
-      console.log(err)
-    }
-  })
-
-  test('avoid posting duplicate companies', async () => {
-    try {
-      return await request(app)
-        .post('/companies')
-        .send({
-          handle: 'aaa',
-          name: 'AAA Company',
-          _token: TEST.token
-        })
-        .then((res) => {
-          expect(res.statusCode).toBe(400)
-        })
-    } catch (err) {
+    }catch(err){
       console.log(err)
     }
   })
 })
 
-describe('get /companies', () => {
-  test('gets list of companies', async () => {
+describe('post /login', () => {
+  test('able to login', async () => {
     try {
       return await request(app)
-        .get('/companies')
+        .post('/login')
         .send({
-          _token: TEST.token
+          username: 'hello',
+          password: 'hello123'
         })
         .then((res) => {
-          expect(res.statusCode).toBe(200)
+          expect(res.statusCode).toEqual(200)
         })
-    } catch (err) {
-      console.log(err)
-    }
-  })
-
-  test('gets one company', async () => {
-    try {
-      return await request(app)
-        .get('/companies/aaa')
-        .send({
-          _token: TEST.token
-        })
-        .then((res) => {
-          expect(res.body.company.name).toBe('AAA Company')
-        })
-    } catch (err) {
+    } catch(err) {
       console.log(err)
     }
   })
 })
 
-describe('patch /companies', () => {
-  test('should update a company', async () => {
+describe('get /users', () => {
+  test('able to get list of users', async () => {
     try {
       return await request(app)
-        .patch('/companies/aaa')
+        .get('/users')
         .send({
-          name: 'AAA Inc',
           _token: TEST.token
         })
         .then((res) => {
-          expect(res.statusCode).toBe(200)
-          expect(res.body.company.name).toBe('AAA Inc')
+          expect(res.statusCode).toEqual(200)
         })
     } catch (err) {
       console.log(err)
     }
   })
-})
-
-describe('delete /companies', () => {
-  test('delete a company', async () => {
+  test('able to get one user', async () => {
     try {
       return await request(app)
-        .delete('/companies/bbb')
+        .get('/users/test')
         .send({
           _token: TEST.token
         })
         .then((res) => {
-          expect(res.statusCode).toBe(200)
+          expect(res.statusCode).toEqual(200)
         })
-    } catch (err) {
+    } catch(err) {
+      console.log(err)
+    }
+  })
+})
+
+describe('patch /users', () => {
+  test('update a user', async () => {
+    try {
+      return await request(app)
+        .patch('/users/test')
+        .send({
+          email: 'test12222@gmail.com',
+          _token: TEST.token
+        })
+        .then((res) => {
+          expect(res.statusCode).toEqual(200)
+        })
+    } catch(err) {
+      console.log(err)
+    }
+  })
+})
+
+describe('delete /users', () => {
+  test('delete a user', async () => {
+    try {
+      return await request(app)
+        .delete('/users/test')
+        .send({
+          _token: TEST.token
+        })
+        .then((res) => {
+          expect(res.statusCode).toEqual(200)
+        })
+    } catch(err) {
       console.log(err)
     }
   })

@@ -57,6 +57,13 @@
         "title": "The Email Schema ",
         "default": "",
         "examples": ["michael@rithmschool.com"]
+      },
+      "is_admin": {
+        "$id": "/properties/is_admin",
+        "type": "boolean",
+        "title": "The admin Schema ",
+        "default": "",
+        "examples": [true]
       }
     },
     "required": ["username", "password", "email"]

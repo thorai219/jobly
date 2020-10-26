@@ -2,15 +2,12 @@ const db = require("../db");
 const ExpressError = require("../helpers/ExpressError");
 const sqlForPartialUpdate = require("../helpers/partialUpdate");
 
-/** Related functions for companies. */
-
 class Company {
-  /** Find all companies (can filter on terms in data). */
 
   static async findAll(data) {
-    let baseQuery = `SELECT handle, name FROM companies`;
-    let whereExpressions = [];
-    let queryValues = [];
+    let query = `SELECT handle, name FROM companies`;
+    let where = [];
+    let values = [];
 
     if (+data.min_employees >= +data.max_employees) {
       throw new ExpressError(
@@ -19,37 +16,29 @@ class Company {
       );
     }
 
-    // For each possible search term, add to whereExpressions and
-    // queryValues so we can generate the right SQL
-
     if (data.min_employees) {
-      queryValues.push(+data.min_employees);
-      whereExpressions.push(`num_employees >= $${queryValues.length}`);
+      values.push(+data.min_employees);
+      where.push(`num_employees >= $${values.length}`);
     }
 
     if (data.max_employees) {
-      queryValues.push(+data.max_employees);
-      whereExpressions.push(`num_employees <= $${queryValues.length}`);
+      values.push(+data.max_employees);
+      where.push(`num_employees <= $${values.length}`);
     }
 
     if (data.search) {
-      queryValues.push(`%${data.search}%`);
-      whereExpressions.push(`name ILIKE $${queryValues.length}`);
+      values.push(`%${data.search}%`);
+      where.push(`name ILIKE $${values.length}`);
     }
 
-    if (whereExpressions.length > 0) {
-      baseQuery += " WHERE ";
+    if (where.length > 0) {
+      query += " WHERE ";
     }
 
-    // Finalize query and return results
-
-    let finalQuery =
-      baseQuery + whereExpressions.join(" AND ") + " ORDER BY name";
-    const companiesRes = await db.query(finalQuery, queryValues);
+    let queryStr = query + where.join(" AND ") + " ORDER BY name";
+    const companiesRes = await db.query(queryStr, values);
     return companiesRes.rows;
   }
-
-  /** Given a company handle, return data about company. */
 
   static async findOne(handle) {
     const companyRes = await db.query(
@@ -76,8 +65,6 @@ class Company {
 
     return company;
   }
-
-  /** Create a company (from data), update db, return new company data. */
 
   static async create(data) {
     const duplicateCheck = await db.query(
@@ -111,15 +98,6 @@ class Company {
     return result.rows[0];
   }
 
-  /** Update company data with `data`.
-   *
-   * This is a "partial update" --- it's fine if data doesn't contain
-   * all the fields; this only changes provided ones.
-   *
-   * Return data for changed company.
-   *
-   */
-
   static async update(handle, data) {
     let { query, values } = sqlForPartialUpdate(
       "companies",
@@ -137,8 +115,6 @@ class Company {
 
     return company;
   }
-
-  /** Delete given company from database; returns undefined. */
 
   static async remove(handle) {
     const result = await db.query(
